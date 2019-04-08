@@ -1,6 +1,10 @@
 <?php
 // DIC configuration
 
+use app\controller\IpCameraController;
+use app\model\IpCameraModel;
+
+
 $container = $app->getContainer();
 
 // view renderer
@@ -20,7 +24,33 @@ $container['logger'] = function ($c) {
 
 $container['db'] = function($c) {
     $settings = $c->get('settings')['db'];
-    $pdo = new PDO("mysql:host=" . $settings['host'] . ";dbname" . $settings['dbname'], $settings['user'], $settings['pass']);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    return $pdo;
+
+    //data source name
+    $dsn = "mysql:dbname=" . $settings['dbname'] . ";host=" . $settings['host'];
+    $dbuser = $settings['user'];
+    $dbpass = $settings['pass'];
+
+
+    try{
+        $pdo = new PDO($dsn, $dbuser, $dbpass);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $pdo;
+    } catch(PDOException $e) {
+        echo "Fail: " . $e->etMessage();
+    }
+    return false;
+    
+    
+};
+
+$container['IpCameraController'] = function ($c)
+{
+    $service = new IpCameraController($c->IpCameraModel);
+	return $service;
+};
+
+$container['IpCameraModel'] = function ($c)
+{
+    $service = new IpCameraModel($c->db);
+	return $service;
 };
